@@ -1,0 +1,21 @@
+# Terraform state & cache
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+*.tfstate.*.backup
+tfplan
+plan_output.txt
+crash.log
+crash.*.log
+
+# Variable files with secrets — never commit these
+*.auto.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Local env
+.env
+.envrc
