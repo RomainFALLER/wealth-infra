@@ -109,8 +109,8 @@ resource "azurerm_key_vault_secret" "enable_banking_private_key" {
 }
 
 resource "azurerm_key_vault_secret" "db_url" {
-  name  = "database-url"
-  value = "mysql+aiomysql://${var.db_admin_login}:${var.db_admin_password}@${azurerm_mysql_flexible_server.main.fqdn}:3306/${var.db_name}"
+  name         = "database-url"
+  value        = "mysql+aiomysql://${var.db_admin_login}:${var.db_admin_password}@${azurerm_mysql_flexible_server.main.fqdn}:3306/${var.db_name}"
   key_vault_id = azurerm_key_vault.main.id
   depends_on   = [azurerm_key_vault_access_policy.terraform]
 }
@@ -176,9 +176,9 @@ resource "azurerm_linux_web_app" "backend" {
   }
 
   site_config {
-    always_on        = var.backend_always_on
-    ftps_state       = "Disabled"
-    http2_enabled    = true
+    always_on           = var.backend_always_on
+    ftps_state          = "Disabled"
+    http2_enabled       = true
     minimum_tls_version = "1.2"
 
     application_stack {
@@ -200,7 +200,7 @@ resource "azurerm_linux_web_app" "backend" {
     DATABASE_URL = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.main.name};SecretName=database-url)"
 
     # JWT
-    JWT_SECRET_KEY               = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.main.name};SecretName=jwt-secret-key)"
+    JWT_SECRET_KEY                  = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.main.name};SecretName=jwt-secret-key)"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES = "15"
     JWT_REFRESH_TOKEN_EXPIRE_DAYS   = "7"
 

@@ -20,5 +20,5 @@ swa_sku_tier = "Standard"
 tags = {
   team        = "wealthos"
   cost_center = "engineering"
-  criticality  = "high"
+  criticality = "high"
 }

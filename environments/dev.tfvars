@@ -10,9 +10,9 @@ backend_sku_name  = "B1"
 backend_always_on = false
 
 # MySQL — burstable, minimum storage (20 GB)
-db_sku_name    = "B_Standard_B1ms"
-db_storage_gb  = 20
-db_name        = "wealthos"
+db_sku_name   = "B_Standard_B1ms"
+db_storage_gb = 20
+db_name       = "wealthos"
 
 # SWA — free tier, westeurope (francecentral not supported for staticSites)
 swa_location = "westeurope"
@@ -35,6 +35,6 @@ enable_banking_app_id = "226b8ea4-b037-405c-a9d9-3c1f8ee3470c"
 #   TF_VAR_enable_banking_private_key_pem=...
 
 tags = {
-  team       = "wealthos"
+  team        = "wealthos"
   cost_center = "engineering"
 }
