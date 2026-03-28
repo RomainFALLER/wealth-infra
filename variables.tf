@@ -42,12 +42,6 @@ variable "backend_sku_name" {
   default     = "B1"
 }
 
-variable "backend_python_version" {
-  description = "Python version for the FastAPI App Service."
-  type        = string
-  default     = "3.12"
-}
-
 variable "backend_always_on" {
   description = "Keep App Service always on (recommended for prod, disable for dev to save cost)."
   type        = bool
@@ -57,21 +51,21 @@ variable "backend_always_on" {
 # ── Database ──────────────────────────────────────────────────────────────────
 
 variable "db_sku_name" {
-  description = "PostgreSQL Flexible Server SKU."
+  description = "MySQL Flexible Server SKU. B_Standard_B1ms is the cheapest burstable tier."
   type        = string
   default     = "B_Standard_B1ms"
 }
 
-variable "db_storage_mb" {
-  description = "PostgreSQL storage in MB."
+variable "db_storage_gb" {
+  description = "MySQL storage in GB (minimum 20)."
   type        = number
-  default     = 32768 # 32 GB
+  default     = 20
 }
 
 variable "db_version" {
-  description = "PostgreSQL major version."
+  description = "MySQL major version."
   type        = string
-  default     = "16"
+  default     = "8.0.21"
 }
 
 variable "db_admin_login" {
@@ -108,6 +102,12 @@ variable "google_client_id" {
 
 # ── Frontend (SWA) ────────────────────────────────────────────────────────────
 
+variable "swa_location" {
+  description = "Region for the Static Web App. Must be one of: westus2, centralus, eastus2, westeurope, eastasia."
+  type        = string
+  default     = "westeurope"
+}
+
 variable "swa_sku_tier" {
   description = "Static Web App SKU tier: Free | Standard"
   type        = string
@@ -119,4 +119,22 @@ variable "github_repo_token" {
   type        = string
   sensitive   = true
   default     = ""
+}
+
+# ── Container Registry (ACR) ──────────────────────────────────────────────────
+
+variable "acr_login_server" {
+  description = "ACR login server hostname, e.g. crwealthosdev.azurecr.io"
+  type        = string
+}
+
+variable "acr_username" {
+  description = "ACR admin username (enable admin user on the registry)."
+  type        = string
+}
+
+variable "acr_password" {
+  description = "ACR admin password."
+  type        = string
+  sensitive   = true
 }

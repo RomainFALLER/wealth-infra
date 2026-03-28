@@ -1,7 +1,7 @@
 # ── dev environment ───────────────────────────────────────────────────────────
 # Usage: terraform apply -var-file=environments/dev.tfvars
 
-azure_subscription_id = "YOUR_SUBSCRIPTION_ID"
+azure_subscription_id = "92fdaf24-80b1-4166-b6c4-dec00e80cad0"
 environment           = "dev"
 location              = "francecentral"
 
@@ -9,18 +9,25 @@ location              = "francecentral"
 backend_sku_name  = "B1"
 backend_always_on = false
 
-# PostgreSQL — burstable, minimum storage
-db_sku_name   = "B_Standard_B1ms"
-db_storage_mb = 32768
-db_name       = "wealthos"
+# MySQL — burstable, minimum storage (20 GB)
+db_sku_name    = "B_Standard_B1ms"
+db_storage_gb  = 20
+db_name        = "wealthos"
 
-# SWA — free tier sufficient for dev
+# SWA — free tier, westeurope (francecentral not supported for staticSites)
+swa_location = "westeurope"
 swa_sku_tier = "Free"
+
+# ACR
+acr_login_server = "crwealthosdev.azurecr.io"
+# acr_username and acr_password: override via TF_VAR_acr_username / TF_VAR_acr_password
 
 # Secrets — override via env vars or CI:
 #   TF_VAR_db_admin_password=...
 #   TF_VAR_jwt_secret_key=...
 #   TF_VAR_google_client_id=...
+#   TF_VAR_acr_username=...
+#   TF_VAR_acr_password=...
 
 tags = {
   team       = "wealthos"

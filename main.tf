@@ -103,48 +103,45 @@ resource "azurerm_key_vault_secret" "db_password" {
 
 resource "azurerm_key_vault_secret" "db_url" {
   name  = "database-url"
-  value = "postgresql+asyncpg://${var.db_admin_login}:${var.db_admin_password}@${azurerm_postgresql_flexible_server.main.fqdn}:5432/${var.db_name}?ssl=require"
+  value = "mysql+aiomysql://${var.db_admin_login}:${var.db_admin_password}@${azurerm_mysql_flexible_server.main.fqdn}:3306/${var.db_name}"
   key_vault_id = azurerm_key_vault.main.id
   depends_on   = [azurerm_key_vault_access_policy.terraform]
 }
 
-# ── PostgreSQL Flexible Server ────────────────────────────────────────────────
+# ── MySQL Flexible Server ─────────────────────────────────────────────────────
 
-resource "azurerm_postgresql_flexible_server" "main" {
-  name                   = "psql-${local.name_prefix}-${random_string.suffix.result}"
+resource "azurerm_mysql_flexible_server" "main" {
+  name                   = "mysql-${local.name_prefix}-${random_string.suffix.result}"
   resource_group_name    = azurerm_resource_group.main.name
   location               = azurerm_resource_group.main.location
   version                = var.db_version
   administrator_login    = var.db_admin_login
   administrator_password = var.db_admin_password
   sku_name               = var.db_sku_name
-  storage_mb             = var.db_storage_mb
   backup_retention_days  = var.environment == "prod" ? 35 : 7
 
-  # High availability for prod only
-  dynamic "high_availability" {
-    for_each = var.environment == "prod" ? [1] : []
-    content {
-      mode = "ZoneRedundant"
-    }
+  storage {
+    size_gb = var.db_storage_gb
   }
 
   tags = local.common_tags
 }
 
-resource "azurerm_postgresql_flexible_server_database" "app" {
-  name      = var.db_name
-  server_id = azurerm_postgresql_flexible_server.main.id
-  charset   = "UTF8"
-  collation = "en_US.utf8"
+resource "azurerm_mysql_flexible_database" "app" {
+  name                = var.db_name
+  resource_group_name = azurerm_resource_group.main.name
+  server_name         = azurerm_mysql_flexible_server.main.name
+  charset             = "utf8mb4"
+  collation           = "utf8mb4_unicode_ci"
 }
 
-# Allow App Service outbound IPs to reach PostgreSQL
-resource "azurerm_postgresql_flexible_server_firewall_rule" "app_service" {
-  name             = "allow-app-service"
-  server_id        = azurerm_postgresql_flexible_server.main.id
-  start_ip_address = "0.0.0.0"
-  end_ip_address   = "0.0.0.0" # Azure services — replace with App Service outbound IPs for prod
+# Allow App Service outbound IPs to reach MySQL
+resource "azurerm_mysql_flexible_server_firewall_rule" "app_service" {
+  name                = "allow-app-service"
+  resource_group_name = azurerm_resource_group.main.name
+  server_name         = azurerm_mysql_flexible_server.main.name
+  start_ip_address    = "0.0.0.0"
+  end_ip_address      = "0.0.0.0" # Azure services — replace with App Service outbound IPs for prod
 }
 
 # ── App Service Plan ──────────────────────────────────────────────────────────
@@ -178,18 +175,13 @@ resource "azurerm_linux_web_app" "backend" {
     minimum_tls_version = "1.2"
 
     application_stack {
-      python_version = var.backend_python_version
+      docker_image_name        = "backend:latest"
+      docker_registry_url      = "https://${var.acr_login_server}"
+      docker_registry_username = var.acr_username
+      docker_registry_password = var.acr_password
     }
 
-    # FastAPI startup via uvicorn
-    app_command_line = "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"
-
-    cors {
-      allowed_origins = [
-        "https://${azurerm_static_web_app.frontend.default_host_name}",
-      ]
-      support_credentials = true
-    }
+    app_command_line = "" # Docker CMD used instead
   }
 
   app_settings = {
@@ -208,16 +200,17 @@ resource "azurerm_linux_web_app" "backend" {
     # Google OAuth
     GOOGLE_CLIENT_ID = var.google_client_id
 
-    # CORS — frontend origin
-    ALLOWED_ORIGINS = "https://${azurerm_static_web_app.frontend.default_host_name}"
+    # CORS — FastAPI handles CORS; list all allowed frontend origins
+    ALLOWED_ORIGINS = var.environment == "prod" ? "https://wealthy-app.com,https://www.wealthy-app.com" : "http://localhost:4200,https://dev.wealthy-app.com"
 
     # Application Insights
-    APPLICATIONINSIGHTS_CONNECTION_STRING = azurerm_application_insights.backend.connection_string
+    APPLICATIONINSIGHTS_CONNECTION_STRING      = azurerm_application_insights.backend.connection_string
     ApplicationInsightsAgent_EXTENSION_VERSION = "~3"
 
-    # Python / pip
-    SCM_DO_BUILD_DURING_DEPLOYMENT = "true"
-    ENABLE_ORYX_BUILD              = "true"
+    # Docker — disable Oryx build
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
+    SCM_DO_BUILD_DURING_DEPLOYMENT      = "false"
+    ENABLE_ORYX_BUILD                   = "false"
   }
 
   logs {
@@ -225,8 +218,9 @@ resource "azurerm_linux_web_app" "backend" {
       file_system_level = "Warning"
     }
     http_logs {
-      retention_in_days {
+      file_system {
         retention_in_days = 7
+        retention_in_mb   = 35
       }
     }
     detailed_error_messages = var.environment != "prod"
@@ -235,14 +229,14 @@ resource "azurerm_linux_web_app" "backend" {
 
   tags = local.common_tags
 
-  depends_on = [azurerm_postgresql_flexible_server.main]
+  depends_on = [azurerm_mysql_flexible_server.main]
 }
 
 # ── Static Web App (Angular frontend) ────────────────────────────────────────
 
 resource "azurerm_static_web_app" "frontend" {
   name                = "swa-${local.name_prefix}-frontend"
-  location            = azurerm_resource_group.main.location
+  location            = var.swa_location # SWA not available in francecentral
   resource_group_name = azurerm_resource_group.main.name
   sku_tier            = var.swa_sku_tier
   sku_size            = var.swa_sku_tier

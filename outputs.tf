@@ -38,13 +38,13 @@ output "frontend_api_key" {
 # ── Database ──────────────────────────────────────────────────────────────────
 
 output "db_fqdn" {
-  description = "PostgreSQL Flexible Server FQDN."
-  value       = azurerm_postgresql_flexible_server.main.fqdn
+  description = "MySQL Flexible Server FQDN."
+  value       = azurerm_mysql_flexible_server.main.fqdn
 }
 
 output "db_name" {
   description = "Application database name."
-  value       = azurerm_postgresql_flexible_server_database.app.name
+  value       = azurerm_mysql_flexible_database.app.name
 }
 
 # ── Key Vault ─────────────────────────────────────────────────────────────────

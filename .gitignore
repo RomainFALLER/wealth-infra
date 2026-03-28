@@ -1,6 +1,6 @@
 # Terraform state & cache
 .terraform/
-.terraform.lock.hcl
+# Note: .terraform.lock.hcl is intentionally NOT ignored — commit it to pin provider versions
 *.tfstate
 *.tfstate.backup
 *.tfstate.*.backup
@@ -16,6 +16,7 @@ override.tf.json
 *_override.tf
 *_override.tf.json
 
-# Local env
+# Local env / secrets
 .env
 .envrc
+secrets.*.env
