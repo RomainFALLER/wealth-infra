@@ -101,6 +101,13 @@ resource "azurerm_key_vault_secret" "db_password" {
   depends_on   = [azurerm_key_vault_access_policy.terraform]
 }
 
+resource "azurerm_key_vault_secret" "enable_banking_private_key" {
+  name         = "enable-banking-private-key"
+  value        = var.enable_banking_private_key_pem
+  key_vault_id = azurerm_key_vault.main.id
+  depends_on   = [azurerm_key_vault_access_policy.terraform]
+}
+
 resource "azurerm_key_vault_secret" "db_url" {
   name  = "database-url"
   value = "mysql+aiomysql://${var.db_admin_login}:${var.db_admin_password}@${azurerm_mysql_flexible_server.main.fqdn}:3306/${var.db_name}"
@@ -202,6 +209,11 @@ resource "azurerm_linux_web_app" "backend" {
 
     # CORS — FastAPI handles CORS; list all allowed frontend origins
     ALLOWED_ORIGINS = var.environment == "prod" ? "https://wealthy-app.com,https://www.wealthy-app.com" : "http://localhost:4200,https://dev.wealthy-app.com"
+
+    # Enable Banking (PSD2 / Open Banking)
+    ENABLE_BANKING_APP_ID          = var.enable_banking_app_id
+    ENABLE_BANKING_PRIVATE_KEY_PEM = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.main.name};SecretName=enable-banking-private-key)"
+    ENABLE_BANKING_REDIRECT_URL    = var.environment == "prod" ? "https://api.wealthy-app.com/api/v1/open-banking/callback" : "https://api-dev.wealthy-app.com/api/v1/open-banking/callback"
 
     # Application Insights
     APPLICATIONINSIGHTS_CONNECTION_STRING      = azurerm_application_insights.backend.connection_string

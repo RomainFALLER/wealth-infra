@@ -100,6 +100,21 @@ variable "google_client_id" {
   default     = ""
 }
 
+# ── Enable Banking (PSD2 / Open Banking) ──────────────────────────────────────
+
+variable "enable_banking_app_id" {
+  description = "Enable Banking application ID."
+  type        = string
+  default     = ""
+}
+
+variable "enable_banking_private_key_pem" {
+  description = "RSA private key (PEM) for Enable Banking JWT auth."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 # ── Frontend (SWA) ────────────────────────────────────────────────────────────
 
 variable "swa_location" {
