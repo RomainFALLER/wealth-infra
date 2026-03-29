@@ -209,6 +209,7 @@ resource "azurerm_linux_web_app" "backend" {
 
     # CORS — FastAPI handles CORS; list all allowed frontend origins
     ALLOWED_ORIGINS = var.environment == "prod" ? "https://wealthy-app.com,https://www.wealthy-app.com" : "http://localhost:4200,https://dev.wealthy-app.com"
+    FRONTEND_URL    = var.environment == "prod" ? "https://wealthy-app.com" : "https://dev.wealthy-app.com"
 
     # Enable Banking (PSD2 / Open Banking)
     ENABLE_BANKING_APP_ID          = var.enable_banking_app_id
