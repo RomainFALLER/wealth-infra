@@ -115,6 +115,34 @@ variable "enable_banking_private_key_pem" {
   default     = ""
 }
 
+# ── AI / Chat ────────────────────────────────────────────────────────────────
+
+variable "anthropic_api_key" {
+  description = "Anthropic API key for the AI chat assistant."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "openai_api_key" {
+  description = "OpenAI API key (alternative provider for AI chat)."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "chat_provider" {
+  description = "LLM provider for chat: anthropic or openai."
+  type        = string
+  default     = "anthropic"
+}
+
+variable "chat_model" {
+  description = "LLM model name, e.g. claude-sonnet-4-20250514 or gpt-4o-mini."
+  type        = string
+  default     = "claude-sonnet-4-20250514"
+}
+
 # ── Frontend (SWA) ────────────────────────────────────────────────────────────
 
 variable "swa_location" {

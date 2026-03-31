@@ -115,6 +115,20 @@ resource "azurerm_key_vault_secret" "db_url" {
   depends_on   = [azurerm_key_vault_access_policy.terraform]
 }
 
+resource "azurerm_key_vault_secret" "anthropic_api_key" {
+  name         = "anthropic-api-key"
+  value        = var.anthropic_api_key
+  key_vault_id = azurerm_key_vault.main.id
+  depends_on   = [azurerm_key_vault_access_policy.terraform]
+}
+
+resource "azurerm_key_vault_secret" "openai_api_key" {
+  name         = "openai-api-key"
+  value        = var.openai_api_key
+  key_vault_id = azurerm_key_vault.main.id
+  depends_on   = [azurerm_key_vault_access_policy.terraform]
+}
+
 # ── MySQL Flexible Server ─────────────────────────────────────────────────────
 
 resource "azurerm_mysql_flexible_server" "main" {
@@ -215,6 +229,12 @@ resource "azurerm_linux_web_app" "backend" {
     ENABLE_BANKING_APP_ID          = var.enable_banking_app_id
     ENABLE_BANKING_PRIVATE_KEY_PEM = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.main.name};SecretName=enable-banking-private-key)"
     ENABLE_BANKING_REDIRECT_URL    = var.environment == "prod" ? "https://api.wealthy-app.com/api/v1/open-banking/callback" : "https://api-dev.wealthy-app.com/api/v1/open-banking/callback"
+
+    # AI / Chat
+    ANTHROPIC_API_KEY = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.main.name};SecretName=anthropic-api-key)"
+    OPENAI_API_KEY    = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.main.name};SecretName=openai-api-key)"
+    CHAT_PROVIDER     = var.chat_provider
+    CHAT_MODEL        = var.chat_model
 
     # Application Insights
     APPLICATIONINSIGHTS_CONNECTION_STRING      = azurerm_application_insights.backend.connection_string

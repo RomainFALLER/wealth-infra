@@ -63,6 +63,8 @@ jobs:
             -var="db_admin_password=${{ secrets.DB_ADMIN_PASSWORD }}" \
             -var="jwt_secret_key=${{ secrets.JWT_SECRET_KEY }}" \
             -var="google_client_id=${{ secrets.GOOGLE_CLIENT_ID }}" \
+            -var="anthropic_api_key=${{ secrets.ANTHROPIC_API_KEY }}" \
+            -var="openai_api_key=${{ secrets.OPENAI_API_KEY }}" \
             -out=tfplan \
             -no-color 2>&1 | tee plan_output.txt
 
@@ -96,4 +98,6 @@ jobs:
             -var="db_admin_password=${{ secrets.DB_ADMIN_PASSWORD }}" \
             -var="jwt_secret_key=${{ secrets.JWT_SECRET_KEY }}" \
             -var="google_client_id=${{ secrets.GOOGLE_CLIENT_ID }}" \
+            -var="anthropic_api_key=${{ secrets.ANTHROPIC_API_KEY }}" \
+            -var="openai_api_key=${{ secrets.OPENAI_API_KEY }}" \
             -auto-approve
